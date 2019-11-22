@@ -4,19 +4,20 @@ import time
 from pytube import YouTube
 import os
 import subprocess
+from selenium.webdriver.common.action_chains import ActionChains
 
 class TwitterBot:
     def __init__(self, username, password):
         self.username = username
         self.password = password
         self.GoodTwitter = r'C:\Users\Bryan Adams\AppData\Roaming\Mozilla\Firefox\Profiles\w605arb8.default-release-1572544189289\extensions\{09707f3a-3940-48dd-a1f5-6d3747a0c330}.xpi'
-        self.fp = webdriver.FirefoxProfile(r'C:\Users\Bryan Adams\AppData\Roaming\Mozilla\Firefox\Profiles\w605arb8.default-release-1572544189289')
+        #self.fp = webdriver.FirefoxProfile(r'C:\Users\Bryan Adams\AppData\Roaming\Mozilla\Firefox\Profiles\w605arb8.default-release-1572544189289')
         self.tweetID =''
         self.fp = webdriver.FirefoxProfile()
         self.bot= webdriver.Firefox(self.fp)
         self.bot.install_addon(self.GoodTwitter)
         self.output = ''
-
+        self.tweetLink=""
 
 
     def login(self):
@@ -44,51 +45,58 @@ class TwitterBot:
         time.sleep(2)
         tweetStatusIDUsername = bot.find_element_by_class_name('tweet').get_attribute('data-permalink-path')
         self.tweetID = tweetStatusIDUsername.split("/")[3]
-        tweetLink = 'https://twitter.com'+ tweetStatusIDUsername
+        self.tweetLink = 'https://twitter.com'+ tweetStatusIDUsername
         time.sleep(2)
-        bot.get(tweetLink)
+        bot.get(self.tweetLink)
         time.sleep(3) 
         overlay=bot.find_element_by_id("permalink-overlay-dialog")
         YTUrl=overlay.find_element_by_xpath("//a[@class='twitter-timeline-link u-hidden']").get_attribute("title")
-        videoName = r'F:\Programming\Python\Tweet Bot\Videos\{}.mp4'.format(self.tweetID)
-        output_file = YouTube(YTUrl).streams.filter(file_extension='mp4').first().download(r'F:\Programming\Python\Tweet Bot\Videos')
-        os.rename(output_file, videoName)
-        time.sleep(10)
-   
+        YouTube(YTUrl).streams.filter(file_extension='mp4').first().download(r'F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos',self.tweetID )
+        time.sleep(5) 
+
 
 
 
     def edit_video(self):
-        video = r'"F:\Programming\Python\Tweet Bot\Videos\{}.mp4"'.format(self.tweetID)
-        audio = r'"F:\Programming\Python\Tweet Bot\Videos\die.wav"'
-        self.output = r'"F:\Programming\Python\Tweet Bot\Videos\{}.mp4"'.format(self.tweetID+'_edited')
+        video = r'"F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos\{}.mp4"'.format(self.tweetID)
+        audio = r'"F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos\die.wav"'
+        self.output = r'"F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos\{}.mp4"'.format(self.tweetID+'_edited')
 
         command = "ffmpeg -i {} -i {} -c:v copy -map 0:v:0 -map 1:a:0 {}".format(video, audio,self.output)
         subprocess.call(command)
-        time.sleep(3) 
-
-
+        
     def upload_video(self):
-        bot = self.bot
+        bot = self.bot        
+        time.sleep(3) 
         bot.find_element_by_class_name('Icon--reply').click()
         time.sleep(6) 
-        filePath = r'F:\Programming\Python\Tweet Bot\Videos\broom.jpg'
-        #element = bot.find_element_by_css_selector('input.file-input')
-        element = bot.find_element_by_xpath("//input[@type='file']")
-        bot.execute_script("arguments[0].style.display = 'block';", element)
+        filePath = r'F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos\{}.mp4'.format(self.tweetID+'_edited')
+        element = bot.find_element_by_css_selector('#global-tweet-dialog .file-input')
         time.sleep(1)
         element.send_keys(filePath)
+        time.sleep(4)
+        right_drag_element = bot.find_element_by_class_name('VideoTrim-rightHandle')
+        left_drag_element = bot.find_element_by_class_name('VideoTrim-leftHandle')
+        middle_drag_element = bot.find_element_by_class_name('VideoTrim-midHandleCursor')
+        ActionChains(bot).drag_and_drop_by_offset(middle_drag_element, -500,0).perform()
+        time.sleep(1)
+        ActionChains(bot).drag_and_drop_by_offset(right_drag_element, 300,0).perform()
+        time.sleep(1)
+        bot.find_element_by_css_selector("button[class='EdgeButton EdgeButton--primary js-done'][type='button']").click()
+        bot.find_element_by_css_selector('#global-tweet-dialog .tweet-button button.tweet-action').click()
 
 
 
-ed = TwitterBot('diehardgaragetheme@yandex.com', open("mypassword.txt").read().strip())
+
+
+
+
+ed = TwitterBot('mrslagovich', open("mypassword.txt").read().strip())
 ed.login()
 ed.scan_mentions()
-# ed.download_video()
-# ed.edit_video()
+ed.download_video()
+ed.edit_video()
 ed.upload_video()
-
-
-# ed.download_video()
+#ed.download_video()
 
 
