@@ -61,17 +61,15 @@ class TwitterBot:
         video = r'"F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos\{}.mp4"'.format(self.tweetID)
         audio = r'"F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos\die.wav"'
         self.output = r'"F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos\{}.mp4"'.format(self.tweetID+'_edited')
-
-        command = "ffmpeg -i {} -i {} -c:v copy -map 0:v:0 -map 1:a:0 {}".format(video, audio,self.output)
+        command = "ffmpeg -i {} -i {} -c:v copy -map 0:v:0 -map 1:a:0 -stream_loop {} -shortest".format(video, audio,self.output)
         subprocess.call(command)
         
     def upload_video(self):
         bot = self.bot        
         time.sleep(3) 
-        bot.find_element_by_class_name('Icon--reply').click()
-        time.sleep(6) 
+        bot.find_element_by_css_selector('#permalink-overlay-dialog .Icon--reply').click()
         filePath = r'F:\Programming\GitHub\Video-Reply-Twitter-Bot\Videos\{}.mp4'.format(self.tweetID+'_edited')
-        element = bot.find_element_by_css_selector('#global-tweet-dialog .file-input')
+        element = bot.find_element_by_css_selector('#permalink-overlay-dialog .file-input')
         time.sleep(1)
         element.send_keys(filePath)
         time.sleep(4)
@@ -82,8 +80,9 @@ class TwitterBot:
         time.sleep(1)
         ActionChains(bot).drag_and_drop_by_offset(right_drag_element, 300,0).perform()
         time.sleep(1)
-        bot.find_element_by_css_selector("button[class='EdgeButton EdgeButton--primary js-done'][type='button']").click()
-        bot.find_element_by_css_selector('#global-tweet-dialog .tweet-button button.tweet-action').click()
+        bot.find_element_by_css_selector('#media-edit-dialog .EdgeButton.EdgeButton--primary.js-done').click()
+        time.sleep(1)
+        bot.find_element_by_css_selector('#permalink-overlay-dialog .tweet-action.EdgeButton.EdgeButton--primary.js-tweet-btn').click()  
 
 
 
@@ -96,7 +95,7 @@ ed.login()
 ed.scan_mentions()
 ed.download_video()
 ed.edit_video()
-ed.upload_video()
+#ed.upload_video()
 #ed.download_video()
 
 
